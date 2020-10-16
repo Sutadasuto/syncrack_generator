@@ -8,7 +8,7 @@ An example of a generated pavement image, as well as a crack on that image and i
 
 ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/img.jpg?raw=true) ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/gt.jpg?raw=true)
 
-A dataset of 500 pavement images with cracks and their corresponding ground-truths is provided in the "syncrack_dataset" folder (those images were generated, of course, using the code contained in this repository).
+A dataset of 500 pavement images with cracks and their corresponding ground-truths is provided in the "syncrack_dataset.zip" file (those images were generated, of course, using the code contained in this repository).
 
 ## How to run
 ### Needed packages
