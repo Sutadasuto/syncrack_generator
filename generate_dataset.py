@@ -10,6 +10,7 @@ def generate_dataset(image_size, dataset_size, dataset_folder):
     if not os.path.exists(dataset_folder):
         os.makedirs(dataset_folder)
 
+    print("Creating images ({:.0f}%)...".format(0), end="\r")
     for i in range(dataset_size):
 
         pavement = get_pavement(image_size,
@@ -63,9 +64,11 @@ def generate_dataset(image_size, dataset_size, dataset_folder):
         for crack in crack_maps:
             gt = np.maximum(gt, crack)
         cv2.imwrite(os.path.join(dataset_folder, ("{:0%sd}.jpg" % n_digits).format(i)), cracked_pavement)
-        cv2.imwrite(os.path.join(dataset_folder, ("{:0%sd}_gt.jpg" % n_digits).format(i)), gt)
+        cv2.imwrite(os.path.join(dataset_folder, ("{:0%sd}_gt.png" % n_digits).format(i)), gt)
         # cv2.imwrite(os.path.join(dataset_folder, ("{:0%sd}_pavement.jpg" % n_digits).format(i)), pavement)
         # cv2.imwrite(os.path.join(dataset_folder, ("{:0%sd}_crackshape.jpg" % n_digits).format(i)), crack_mask)
+        print("Creating images ({:.0f}%)...".format(100 * (i + 1) / dataset_size), end="\r")
+    print("Creating images ({:.0f}%)... done!".format(100 * (i + 1) / dataset_size))
 
 
 def parse_args(args=None):
