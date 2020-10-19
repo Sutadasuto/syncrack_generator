@@ -6,7 +6,7 @@ Even though real-life annotated datasets exist, the provided labels tend to be w
 
 An example of a generated pavement image, as well as a crack on that image and its corresponding ground-truth are contained in the "examples" folder.
 
-![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/img.jpg?raw=true) ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/gt.jpg?raw=true)
+![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/img.jpg?raw=true) ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/gt.png?raw=true)
 
 A dataset of 500 pavement images with cracks and their corresponding ground-truths is provided in the "syncrack_dataset.zip" file (those images were generated, of course, using the code contained in this repository).
 
