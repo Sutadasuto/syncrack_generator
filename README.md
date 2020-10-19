@@ -6,9 +6,7 @@ Even though real-life annotated datasets exist, the provided labels tend to be w
 
 An example of a generated pavement image, as well as a crack on that image and its corresponding ground-truth are contained in the "examples" folder.
 
-<p align="center">
 ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/img.jpg?raw=true) ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples/gt.png?raw=true)
-</p>
 
 A dataset of 500 pavement images with cracks and their corresponding ground-truths is provided in the "syncrack_dataset.zip" file (those images were generated, of course, using the code contained in this repository).
 
@@ -16,9 +14,7 @@ Additionally, we include a function aimed to attack the precise pixel-wise annot
 
 The images show the pavement picture as well as a comparison between the actual ground-truth and the attacked annotation: in the annotations image, the left part is the actual ground-truth, tha middle one is the attacked annotation, and the right one is a visual comparison of the overlapping of both; white means agreement between actual and attacked annotations, blue means real crack pixels lacking in the attacked mask, and red means cracks in the attacked annotation that are not part of the actual ground-truth.
 
-<p align="center">
 ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples_weak_labels/img.jpg?raw=true) ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples_weak_labels/gt_comparison.png?raw=true)
-</p>
 
 ## How to run
 ### Needed packages
