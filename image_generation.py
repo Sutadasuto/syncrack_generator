@@ -90,6 +90,6 @@ def add_crack(pavement_image, crack_mask, intensity=0.7, position=(0,0), orienta
 #
 # cv2.imwrite("pavement.jpg", pavement)
 # cv2.imwrite("img.jpg", cracked_pavement)
-# cv2.imwrite("gt.jpg", gt)
+# cv2.imwrite("gt.png", gt)
 
 
