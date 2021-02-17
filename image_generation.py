@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 
 from scipy import ndimage
+from weak_labels import get_windows, join_windows
 
 
 def get_pavement(input_size, octaves=5, scale=3.5, persistence=1, lacunarity=2.0, base=0):
@@ -24,6 +25,9 @@ def colorize_pavement(canvas, dark_color=(56, 46, 46), bright_color=(184, 178, 1
 
 
 def add_salt_pepper(colorized_pavement, amount=0.002, s_vs_p=0.7, mean_rad=1, std_rad=1):
+    def get_axis():
+        return int(round(max(0, round(np.random.normal(mean_rad, std_rad)))))
+
     out = np.copy(colorized_pavement)
     # Salt mode
     num_salt = int(np.ceil(amount * colorized_pavement.size * s_vs_p))
@@ -31,8 +35,11 @@ def add_salt_pepper(colorized_pavement, amount=0.002, s_vs_p=0.7, mean_rad=1, st
     coords = [np.random.randint(0, i - 1, num_salt)
               for i in colorized_pavement.shape[:-1]]
     for grain in range(len(coords[0])):
-        radius = max(1, round(np.random.normal(mean_rad, std_rad)))
-        out = cv2.circle(out, (coords[1][grain], coords[0][grain]), radius, salt_color, thickness=-1)
+        if get_axis() > 0:
+            out = cv2.ellipse(out, (coords[1][grain], coords[0][grain]), (max(1, get_axis()), max(1, get_axis())), angle=np.random.normal(90, 22), startAngle=0, endAngle=np.random.choice([360, 270, 200]), color=salt_color, thickness=-1)
+        else:
+            out[coords[0][grain], coords[1][grain]] = salt_color
+
 
     # Pepper mode
     num_pepper = int(np.ceil(amount * colorized_pavement.size * (1. - s_vs_p)))
@@ -40,9 +47,58 @@ def add_salt_pepper(colorized_pavement, amount=0.002, s_vs_p=0.7, mean_rad=1, st
     coords = [np.random.randint(0, i - 1, num_pepper)
               for i in colorized_pavement.shape[:-1]]
     for grain in range(len(coords[0])):
-        radius = max(1, round(np.random.normal(mean_rad, std_rad)))
-        out = cv2.circle(out, (coords[1][grain], coords[0][grain]), radius, pepper_color, thickness=-1)
+        if get_axis() > 0:
+            out = cv2.ellipse(out, (coords[1][grain], coords[0][grain]), (max(1, get_axis()), max(1, get_axis())), angle=np.random.normal(90, 25), startAngle=0, endAngle=np.random.choice([360, 270, 200]), color=pepper_color, thickness=-1)
+        else:
+            out[coords[0][grain], coords[1][grain]] = pepper_color
+
     return 0.7*out + 0.3*colorized_pavement
+
+
+def add_cracky_noise(colorized_pavement, intensity=0.7, amount=0.002, mean_rad=2, std_rad=0.5):
+    def get_axis():
+        return int(round(max(0, round(np.random.normal(mean_rad, std_rad)))))
+
+    noisy_pavement = np.copy(colorized_pavement)
+
+    mask = np.ones(colorized_pavement.shape[:-1], dtype=np.float)
+    num_cracks = int(np.ceil(amount * colorized_pavement[..., 0].size))
+    coords = [np.random.randint(0, i - 1, num_cracks)
+              for i in colorized_pavement.shape[:-1]]
+
+    for grain in range(len(coords[0])):
+        if get_axis() > 0:
+            start_angle = np.random.normal(90, 22)
+            end_angle = np.random.normal(start_angle + 90, 22)
+            mask = cv2.ellipse(mask, (coords[1][grain], coords[0][grain]), (max(1, get_axis()), max(1, get_axis())), angle=np.random.normal(90, 22), startAngle=start_angle, endAngle=end_angle, color=min(max(0.0, np.random.normal(intensity, intensity/10)), 0.9999), thickness=1)
+        else:
+            mask[coords[0][grain], coords[1][grain]] = min(max(0.0, np.random.normal(intensity, intensity/10)), 0.9999)
+
+    mask = cv2.blur(mask, (2,2))
+    for channel in range(3):
+        noisy_pavement[..., channel] *= mask
+
+    return noisy_pavement
+
+
+def oriented_gradient_fill(image_size, slope=1, center=0.5):
+    canvas = np.zeros(image_size, np.float)
+    slope *= -1
+    y_cen = int(center * image_size[0])
+    x_cen = int(center * image_size[1])
+    color_step_size = 0.5/x_cen
+    x_2_0 = int(-(y_cen + x_cen) / slope)
+    x_1_0 = int(((image_size[1] - 1) - (y_cen + x_cen)) / slope)
+
+    color = 0.5
+    for x in range(max(x_1_0, x_2_0)):
+        canvas = cv2.line(canvas, (x_1_0 - x, image_size[0] - 1), (x_2_0 - x, 0), color=max(0.0, color), thickness=1)
+        color -= color_step_size
+    color = 0.5
+    for x in range(image_size[1] - min(x_1_0, x_2_0)):
+        canvas = cv2.line(canvas, (x_1_0 + x, image_size[0] - 1), (x_2_0 + x, 0), color=min(1.0, color), thickness=1)
+        color += color_step_size
+    return cv2.medianBlur(canvas.astype(np.float32), 5)
 
 
 def create_crack_shape(bounding_length, bounding_width, octaves=8, scale=4, persistence=0.5, lacunarity=2,
@@ -56,40 +112,91 @@ def create_crack_shape(bounding_length, bounding_width, octaves=8, scale=4, pers
             0.5 * bounding_width * (1 + noise.pnoise1(i/len(x), octaves=octaves, persistence=persistence,
                                                       lacunarity=lacunarity, base=base, repeat=bounding_length)))
         if i > 0:
-            canvas = cv2.line(canvas, (x[i - 1], y[i - 1]), (x[i], y[i]), color=255, thickness=crack_width)
+            canvas = cv2.line(canvas, (x[i - 1], y[i - 1]), (x[i], y[i]), color=255, thickness=1)
+    er_se = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (crack_width, crack_width))
+    canvas = cv2.dilate(canvas, er_se)
+    if crack_width > 1:
+        window_height, window_width = int(canvas.shape[0]), int(canvas.shape[1] * 0.03)
+        windows, windows_anchors = get_windows(canvas, (window_height, window_width), (-1, -1))
+        erode_prob = 0.4
+        for window_index in range(len(windows)):
+            operation = np.random.choice(["erode", "nothing"], p=[erode_prob, 1 - erode_prob])
+            if operation == "erode":
+                er_se = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 2))
+                windows[window_index] = cv2.erode(windows[window_index], er_se)
+        # canvas = join_windows(windows, windows_anchors)
+        # window_height, window_width = int(canvas.shape[0]), int(canvas.shape[1] * 0.05)
+        # windows, windows_anchors = get_windows(canvas, (window_height, window_width), (-1, -1))
+        # er_se = cv2.getStructuringElement(cv2.MORPH_RECT, (1, crack_width))
+        # windows[0] = cv2.erode(windows[0], er_se)
+        # windows[-1] = cv2.erode(windows[1], er_se)
+        canvas = join_windows(windows, windows_anchors)
     return canvas
 
 
-def add_crack(pavement_image, crack_mask, intensity=0.7, position=(0,0), orientation=0):
+def add_crack(pavement_image, crack_mask, intensity=0.7, fade_factor=0.95, position=(0, 0), orientation=0):
     if orientation != 0:
         crack_mask = cv2.morphologyEx(ndimage.rotate(crack_mask, orientation), cv2.MORPH_CLOSE,
-                                      cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)), iterations=3)
+                                      cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)), iterations=3)
+    ret, crack_mask = cv2.threshold(crack_mask, 100, 1.0, cv2.THRESH_BINARY)
+    crack_core_mask = cv2.erode(crack_mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
 
+    window_height, window_width = int(crack_mask.shape[0] * 0.10), int(crack_mask.shape[1] * 0.10)
+    windows, windows_anchors = get_windows(crack_mask, (window_height, window_width), (-1, -1))
+    for window_index in range(len(windows)):
+        se_size = np.random.choice([1, 3, 5], p=[0.10, 0.60, 0.30])
+        windows[window_index] = cv2.dilate(windows[window_index], cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (se_size, se_size)))
+    crack_surround_mask = join_windows(windows, windows_anchors)
+    crack_surround_mask = cv2.bitwise_xor(crack_mask, crack_surround_mask)
+
+    surrounding_pixels = np.where(crack_surround_mask == 1.0)
     mask = np.ones(pavement_image.shape)[..., 0]
-    crack_pixels = np.where(crack_mask == 255)
-    for pixel_num in range(len(crack_pixels[0])):
+    for pixel_num in range(len(surrounding_pixels[0])):
         try:
-            mask[position[1] + crack_pixels[0][pixel_num], position[0] + crack_pixels[1][pixel_num]] =\
-                np.random.normal(intensity, intensity/10)
+            mask[position[1] + surrounding_pixels[0][pixel_num], position[0] + surrounding_pixels[1][pixel_num]] = \
+                min(max(intensity/(fade_factor**4), np.random.normal(intensity/(fade_factor**4), 0.10)), 1.0)
         except IndexError:
             continue
     pavement_image = np.copy(pavement_image)
     for channel in range(3):
         pavement_image[..., channel] *= mask
 
-    ret, thresh = cv2.threshold(mask, 0.9*mask.max(), 1.0, cv2.THRESH_BINARY_INV)
+    mask = np.ones(pavement_image.shape)[..., 0]
+
+    crack_pixels = np.where(crack_mask == 1.0)
+    for pixel_num in range(len(crack_pixels[0])):
+        try:
+            mask[position[1] + crack_pixels[0][pixel_num], position[0] + crack_pixels[1][pixel_num]] = \
+                min(max(0.0, np.random.normal(intensity/(fade_factor), intensity / 10)), 0.9999)
+                # min(max(0.0, np.random.normal(intensity/(fade_factor**2), intensity / 10)), 0.9999)
+        except IndexError:
+            continue
+
+    crack_core_pixels = np.where(crack_core_mask == 1.0)
+    for pixel_num in range(len(crack_core_pixels[0])):
+        try:
+            mask[position[1] + crack_core_pixels[0][pixel_num], position[0] + crack_core_pixels[1][pixel_num]] =\
+                min(max(0.0, np.random.normal(intensity, intensity/10)), 0.9999)
+        except IndexError:
+            continue
+
+    # Change the intensity distribution of cracks along the image (a crack has not the same intensity in all the structure)
+    compensated_masks = []
+    for d in range(1, 3):
+        compensated_mask = np.zeros(mask.shape, dtype=np.float)
+        compensated_mask[np.where(mask < 1.0)] = mask[np.where(mask < 1.0)]
+        window_height, window_width = int(compensated_mask.shape[0] * 0.25/d), int(compensated_mask.shape[1] * 0.25/d)
+        windows, windows_anchors = get_windows(255*compensated_mask, (window_height, window_width), (-1, -1))
+        for window_index in range(len(windows)):
+            intensity_change = np.random.choice([1.0, 0.9, 1.1])
+            windows[window_index] = np.minimum(230, windows[window_index] * intensity_change)
+        compensated_masks.append(join_windows([np.minimum(255.0, window) for window in windows], windows_anchors).astype(np.float) / 255.0)
+    mask = (compensated_masks[0] + compensated_masks[1]) / 2.0
+    mask[np.where(mask == 0.0)] = 1.0
+
+    pavement_image = np.copy(pavement_image)
+    for channel in range(3):
+        pavement_image[..., channel] *= mask
+
+    ret, thresh = cv2.threshold(mask, 0.99991, 1.0, cv2.THRESH_BINARY_INV)
     return pavement_image.astype(np.uint8), (255*thresh).astype(np.uint8)
-
-
-# pavement = get_pavement((420, 360), octaves=5, scale=3.5)
-# pavement = colorize_pavement(pavement)
-# pavement = add_salt_pepper(pavement)
-#
-# crack_mask = create_crack_shape(360,60)
-# cracked_pavement, gt = add_crack(pavement, crack_mask, position=(0,20), orientation=-30)
-#
-# cv2.imwrite("pavement.jpg", pavement)
-# cv2.imwrite("img.jpg", cracked_pavement)
-# cv2.imwrite("gt.png", gt)
-
-
