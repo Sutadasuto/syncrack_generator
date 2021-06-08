@@ -93,6 +93,25 @@ def attack_annotation(annotation, grid_percentage=0.1, dil_avg_size=3, er_avg_si
     return attacked_annotation
 
 
+def attack_annotation_shift(annotation, grid_percentage=0.1):
+    image_size = annotation.shape
+    window_height, window_width = int(image_size[0] * grid_percentage), int(image_size[1] * grid_percentage)
+    windows, windows_anchors = get_windows(annotation, (window_height, window_width), (-1, -1))
+    shifts = [i for i in range(-4, 5)]
+    for window_index in range(len(windows)):
+        operation = np.random.choice(["vertical", "horizontal"], p=[0.5, 0.5])
+        shift = np.random.choice(shifts)
+        if operation == "vertical":
+            M = np.float32([[1, 0, 0], [0, 1, shift]])
+        else:
+            M = np.float32([[1, 0, shift], [0, 1, 0]])
+
+        windows[window_index] = cv2.warpAffine(windows[window_index], M, (window_width, window_height))
+
+    attacked_annotation = join_windows(windows, windows_anchors)
+    return attacked_annotation
+
+
 def attack_dataset(path_to_dataset, bg_color="white"):
     if not os.path.exists(path_to_dataset + "_attacked"):
         os.makedirs(path_to_dataset + "_attacked")
@@ -129,4 +148,5 @@ def attack_dataset(path_to_dataset, bg_color="white"):
     print("Attacking ground truths ({:.0f}%)...".format(100 * (i + 1) / len(ground_truth_image_paths)))
 
 
-attack_dataset("syncrack_dataset_v3")
+# attack_dataset("syncrack_dataset_v3")
+attack_annotation_shift(cv2.imread("/media/shared_storage/datasets/syncrack_dataset_v3/000_gt.png", cv2.IMREAD_GRAYSCALE), grid_percentage=0.1)
