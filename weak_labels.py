@@ -149,4 +149,4 @@ def attack_dataset(path_to_dataset, bg_color="white"):
 
 
 # attack_dataset("syncrack_dataset_v3")
-attack_annotation_shift(cv2.imread("/media/shared_storage/datasets/syncrack_dataset_v3/000_gt.png", cv2.IMREAD_GRAYSCALE), grid_percentage=0.1)
+# attack_annotation_shift(cv2.imread("/media/shared_storage/datasets/syncrack_dataset_v3/000_gt.png", cv2.IMREAD_GRAYSCALE), grid_percentage=0.1)
