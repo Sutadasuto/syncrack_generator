@@ -108,7 +108,7 @@ def oriented_gradient_fill(image_size, slope=1, center=0.5):
     slope *= -1  # Since the vertical axis increases downwards in images
     y_cen = int(center * image_size[0])
     x_cen = int(center * image_size[1])
-    color_step_size = 0.5 / x_cen
+    alpha_step_size = 0.5 / x_cen
     # Given a known point of the center line, and it's slope, calculate the x-coordinates of the extreme points
     x_2_0 = int(-(y_cen + x_cen) / slope)
     x_1_0 = int(((image_size[1] - 1) - (y_cen + x_cen)) / slope)
@@ -118,12 +118,12 @@ def oriented_gradient_fill(image_size, slope=1, center=0.5):
     for x in range(max(x_1_0, x_2_0)):
         # The alphas are assigned line-wise with lines parallel to the input slope
         canvas = cv2.line(canvas, (x_1_0 - x, image_size[0] - 1), (x_2_0 - x, 0), color=max(0.0, alpha), thickness=1)
-        alpha -= color_step_size  # As move along the image, alpha changes
+        alpha -= alpha_step_size  # As move along the image, alpha changes
     # Calculate alphas for color 2
-    color = 0.5
+    alpha = 0.5
     for x in range(image_size[1] - min(x_1_0, x_2_0)):
         canvas = cv2.line(canvas, (x_1_0 + x, image_size[0] - 1), (x_2_0 + x, 0), color=min(1.0, alpha), thickness=1)
-        alpha += color_step_size
+        alpha += alpha_step_size
     return cv2.medianBlur(canvas.astype(np.float32), 5)
 
 
