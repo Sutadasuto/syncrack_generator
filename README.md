@@ -33,7 +33,7 @@ The images show the pavement picture as well as a comparison between the actual 
 
 ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples_weak_labels/img.jpg?raw=true) ![alt text](https://github.com/Sutadasuto/syncrack_generator/blob/main/examples_weak_labels/gt_comparison.png?raw=true)
 
-A noisy version of the dataset from "syncrack_dataset.zip" is provided in "syncrack_dataset_noisy.zip".
+A noisy version of the dataset from "syncrack_dataset.zip" is provided in "syncrack_dataset_attacked.zip".
 
 ## How to run
 ### Needed packages
