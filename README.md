@@ -1,5 +1,7 @@
 # syncrack_generator
 ## Description
+DEPRECATED: This branch contains both the version of the tool and the dataset used for our paper proposed in Neurocomputing (reference pending). We keep this version as a separate branch for result reproducibility purposes; therefore, it will not be updated in the future. The user is encouraged to work with the main branch, which is an updated version (and it will receive the most recent updates).
+
 The current repository provides a tool for massive generation of synthetic images emulating pavement and cracks on such pavement.
 
 Even though real-life annotated datasets exist, the provided labels tend to be inaccurate because a manual accurate annotation in real-life samples is very costful. The ultimate goal of this generator is to provide a tool for training and testing pixel-accurate crack detection methods/models, using accurate annotations (for each image, a ground truth annotation is provided).
