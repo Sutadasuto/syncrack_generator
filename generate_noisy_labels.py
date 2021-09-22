@@ -20,6 +20,7 @@ def generate_noisy_labels(args):
         os.makedirs(comparison_folder)
     string_of_interest = "_gt.png"
 
+    # Get the paths to the ground truth annotations from the dataset to attack
     ground_truth_image_paths = sorted(
         [os.path.join(args.dataset_folder, f) for f in os.listdir(args.dataset_folder)
          if not f.startswith(".") and f.endswith(string_of_interest)],
@@ -27,20 +28,22 @@ def generate_noisy_labels(args):
 
     print("Attacking ground truths ({:.0f}%)...".format(0), end="\r")
     for i, gt_path in enumerate(ground_truth_image_paths):
-        new_gt_path = os.path.join(output_folder, os.path.split(gt_path)[1])
-        comparison_path = os.path.join(comparison_folder, os.path.split(gt_path)[1])
+        new_gt_path = os.path.join(output_folder, os.path.split(gt_path)[1])  # Path to save noisy annotation
+        comparison_path = os.path.join(comparison_folder, os.path.split(gt_path)[1])  # Path to save annotation comparison
         gt = cv2.imread(gt_path, cv2.IMREAD_GRAYSCALE)
+        # Get noisy annotation
         gt_attacked = attack_annotation(gt, args.operation, args.noise_percentage, args.grid_percentage,
                                         args.dilation_size, args.erosion_size, args.dilation_probability)
 
+        # Copy the input image to the noisy dataset folder
         img_path = gt_path.replace(string_of_interest, ".jpg")
         new_img_path = os.path.join(output_folder, os.path.split(img_path)[1])
         copyfile(img_path, new_img_path)
-        cv2.imwrite(new_gt_path, gt_attacked)
+        cv2.imwrite(new_gt_path, gt_attacked)  # Save the noisy annotation
 
+        # Compare the clean and noisy annotations and save the comparative image
         gt = 255 - gt
         gt_attacked = 255 - gt_attacked
-
         gt = np.concatenate([gt[..., None] for c in range(3)], axis=-1)
         gt_attacked = np.concatenate([gt_attacked[..., None] for c in range(3)], axis=-1)
         gt_comparison = compare_masks(gt, gt_attacked)
@@ -48,6 +51,7 @@ def generate_noisy_labels(args):
         print("Attacking ground truths ({:.0f}%)...".format(100 * (i + 1) / len(ground_truth_image_paths)), end="\r")
     print("Attacking ground truths ({:.0f}%)...".format(100 * (i + 1) / len(ground_truth_image_paths)))
 
+    # Calculate the confusion matrix of the noisy annotations with respect to the clean ones
     print("Calculating confusion matrix")
     compare_gt_stats(args.dataset_folder, output_folder, comparison_folder)
     output_string = ""
@@ -58,18 +62,18 @@ def generate_noisy_labels(args):
 
 
 def parse_args(args=None):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("dataset_folder", type=str,
                         help="Folder containing the dataset to attack.")
     parser.add_argument("--save_to", type=str, default=None,
                         help="The noisy dataset will be saved in this folder. It is created if it doesn't exist. If"
                              "'None' is provided, a new folder '$dataset_folder$_attacked' will be created; "
-                             "$dataset_folder$ is the path provided as 'dataset_folder' argument." )
+                             "$dataset_folder$ is the path provided as 'dataset_folder' argument.")
     parser.add_argument("-op", "--operation", type=str, default="both",
-                        help="Morphological operation used to introduce noise. Either 'dilate', 'erode' or 'both'")
+                        help="Morphological operation used to introduce noise. Either 'dilate', 'erode' or 'both'.")
     parser.add_argument("-np", "--noise_percentage", type=float, default=1.0,
-                        help="A float in the range (0.0, 1.0]. This value determines the percentage of the annotation "
-                             "image that will be attacked (percentage of windows).")
+                        help="A float in the range (0.0, 1.0]. This value determines the approximate percentage of the "
+                             "annotation image that will be attacked (percentage of windows).")
     parser.add_argument("-gp", "--grid_percentage", type=float, default=0.05,
                         help="A float in the range (0.0, 1.0). To introduce label noise, the annotation image is "
                              "divided into a grid of --grid_percentage*height x --grid_percentage*width windows. The "
