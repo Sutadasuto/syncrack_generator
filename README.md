@@ -1,5 +1,12 @@
 # syncrack_generator
 ## Description
+For further information, see: 
+```
+Rill-García, R.; Dokladalova, E. and Dokládal, P. (2022). Syncrack: Improving Pavement and Concrete Crack Detection through Synthetic Data Generation.  In Proceedings of the 17th International Joint Conference on Computer Vision, Imaging and Computer Graphics Theory and Applications - Volume 4: VISAPP, ISBN 978-989-758-555-5, ISSN 2184-4321, pages 147-158. 
+```
+
+If you use this software, we kindly ask you to cite the above paper.
+
 The current repository provides a tool for user-parametrized generation of synthetic images emulating pavement and concrete textures. This tool introduces user-parametrized cracks on the texture, providing an accurate segmentation map of the cracks in the image.
 
 Even though real-life annotated datasets exist, the provided labels tend to be inaccurate because a manual accurate annotation in real-life samples is very costful. The ultimate goal of this generator is to provide a tool for training and testing pixel-accurate crack detection methods/models, using accurate annotations.
