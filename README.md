@@ -1,6 +1,6 @@
 # syncrack_generator
 ## Description
-DEPRECATED: This branch contains both the version of the tool and the dataset used for our paper proposed in Neurocomputing (reference pending). We keep this version as a separate branch for result reproducibility purposes; therefore, it will not be updated in the future. The user is encouraged to work with the main branch, which is an updated version (and it will receive the most recent updates).
+DEPRECATED: This branch contains both the version of the tool and the dataset used for our paper proposed in Neurocomputing (Rill-García, R., Dokládalová, E. and Doklédal, P., 2022. Pixel-accurate road crack detection in presence of inaccurate annotations. Neurocomputing.). We keep this version as a separate branch for result reproducibility purposes; therefore, it will not be updated in the future. The user is encouraged to work with the main branch, which is an updated version (and it will receive the most recent updates).
 
 The current repository provides a tool for massive generation of synthetic images emulating pavement and cracks on such pavement.
 
