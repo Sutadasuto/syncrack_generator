@@ -2,7 +2,17 @@
 ## Description
 For further information, see: 
 ```
-Rill-García, R.; Dokladalova, E. and Dokládal, P. (2022). Syncrack: Improving Pavement and Concrete Crack Detection through Synthetic Data Generation.  In Proceedings of the 17th International Joint Conference on Computer Vision, Imaging and Computer Graphics Theory and Applications - Volume 4: VISAPP, ISBN 978-989-758-555-5, ISSN 2184-4321, pages 147-158. 
+@conference{visapp22,
+  author={Rodrigo Rill{-}García and Eva Dokladalova and Petr Dokládal.},
+  title={Syncrack: Improving Pavement and Concrete Crack Detection through Synthetic Data Generation},
+  booktitle={Proceedings of the 17th International Joint Conference on Computer Vision, Imaging and Computer Graphics Theory and Applications - Volume 4: VISAPP},
+  year={2022},
+  pages={147-158},
+  publisher={SciTePress},
+  organization={INSTICC},
+  doi={10.5220/0010837300003124},
+  isbn={978-989-758-555-5},
+}
 ```
 
 If you use this software, we kindly ask you to cite the above paper.
